@@ -5,5 +5,21 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "hydra-core>=1.3.2",
+    "gym>=0.26.2",
+    "gym-anytrading>=2.0.0",
+    "matplotlib>=3.10.1",
+    "numpy>=2.1.2",
+    "oandapyv20>=0.7.2",
+    "pandas>=2.2.3",
+    "pyesn>=0.0.2",
+    "pyyaml>=6.0.2",
+    "stable-baselines3>=2.6.0",
+    "torch>=2.5.1",
+    "v20>=3.0.25.0",
+    "yfinance>=0.2.55",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ipykernel>=6.29.5",
 ]
