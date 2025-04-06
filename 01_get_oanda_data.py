@@ -8,6 +8,7 @@ RAW_DATAFOLDER = CONFIGS["folder_paths"]["raw"]
 
 INSTRUMENTS = ["EUR_USD", "USD_CAD", "USD_JPY", "EUR_JPY"]
 GRANULARITY = "H1"
+PRICE_TYPE = "BA"
 START_STR = "01012024"
 END_STR = "01032025"
 
@@ -17,13 +18,15 @@ def main():
         print(
             f"FETCHING DATA FOR {instrument}, {GRANULARITY} for period {START_STR}-{END_STR}"
         )
-        hist_df = fetch_historical(instrument, GRANULARITY, START_STR, END_STR)
+        hist_df = fetch_historical(
+            instrument, GRANULARITY, PRICE_TYPE, START_STR, END_STR
+        )
         instrument_folder = os.path.join(RAW_DATAFOLDER, instrument)
         os.makedirs(instrument_folder, exist_ok=True)
 
         file_name = f"{instrument}_{GRANULARITY}_{START_STR}_{END_STR}.csv"
         full_path = os.path.join(instrument_folder, file_name)
-        hist_df.to_csv(full_path, index=False)
+        hist_df.to_csv(full_path)
         print(f"File saved to {full_path}")
 
 

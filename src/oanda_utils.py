@@ -46,7 +46,9 @@ def make_verbose_api_request(url, headers=None, params=None):
         return response.json()  # Return the successful response
 
 
-def get_candles(instrument: str, start_date: datetime, granularity: str):
+def get_candles(
+    instrument: str, start_date: datetime, granularity: str, price_type: str = "M"
+):
     """Requests from oanda's api candles. Returns mid price point as a list of dicts."""
     url = f"v3/instruments/{instrument}/candles"
     endpoint = os.path.join(BASE_URL, url)
@@ -55,7 +57,7 @@ def get_candles(instrument: str, start_date: datetime, granularity: str):
         "from": start_date.isoformat() + "Z",
         "count": 5000,
         "granularity": granularity,
-        "price": "M",
+        "price": price_type,
     }
 
     data = make_verbose_api_request(endpoint, HEADERS, params)
@@ -64,18 +66,29 @@ def get_candles(instrument: str, start_date: datetime, granularity: str):
     if not candles:
         print("WARNING: No candle data present.")
 
-    historical_data = [
-        {
-            "time": candle["time"],
-            "open": candle["mid"]["o"],
-            "high": candle["mid"]["h"],
-            "low": candle["mid"]["l"],
-            "close": candle["mid"]["c"],
-            "volume": candle["volume"],
-        }
-        for candle in candles
-        if candle.get("complete", False)
-    ]
+    if price_type == "BA":
+        historical_data = [
+            {
+                "time": candle["time"],
+                "bid": candle["bid"]["c"],
+                "ask": candle["ask"]["c"],
+            }
+            for candle in candles
+            if candle.get("complete", False)
+        ]
+    if price_type == "M":
+        historical_data = [
+            {
+                "time": candle["time"],
+                "open": candle["mid"]["o"],
+                "high": candle["mid"]["h"],
+                "low": candle["mid"]["l"],
+                "close": candle["mid"]["c"],
+                "volume": candle["volume"],
+            }
+            for candle in candles
+            if candle.get("complete", False)
+        ]
 
     return historical_data
 
@@ -97,7 +110,9 @@ def str_to_dt(str: str):
     return dt
 
 
-def fetch_historical(instrument: str, granularity: str, start_str: str, end_str: str):
+def fetch_historical(
+    instrument: str, granularity: str, price_type: str, start_str: str, end_str: str
+):
     """Fetches historical data from oanda by requesting multiple times based on start and end date str.
     Returns a df for easy data manipulation"""
     dt_start = datetime.strptime(start_str, "%d%m%Y")
@@ -107,7 +122,12 @@ def fetch_historical(instrument: str, granularity: str, start_str: str, end_str:
     all_data = []
     prev_candles = []
     while current < dt_end:
-        candles = get_candles(instrument, start_date=current, granularity=granularity)
+        candles = get_candles(
+            instrument,
+            start_date=current,
+            granularity=granularity,
+            price_type=price_type,
+        )
         if prev_candles == candles:
             break
         prev_candles = candles
@@ -122,4 +142,8 @@ def fetch_historical(instrument: str, granularity: str, start_str: str, end_str:
     df["time"] = df["time"].apply(str_to_dt)
     correct_range_df = df.loc[df["time"] <= dt_end]
 
+    # Convert to datetime
+    correct_range_df.loc[:, "time"] = pd.to_datetime(correct_range_df["time"])
+    correct_range_df.set_index("time", inplace=True)
+    print(correct_range_df)
     return correct_range_df
