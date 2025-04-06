@@ -75,8 +75,12 @@ class Simulator:
             if percentage_gained > 0
             else f"{percentage_gained} %"
         )
+        print("__________________________________________")
         print("\nSimulation Ended!")
-        print(f"Capital: {self.initial_capital} → {self.account.capital}, {gained_str}")
+        print(
+            f"Capital: {self.initial_capital} → {self.account.capital:.2f}, {gained_str}\n"
+            f"Positions Taken: {self.n_positions}"
+        )
 
     def should_purchase(self, data: pd.Series):
         """If has no position then return if signal column returns -1 (sell) or 1 (buy)."""
@@ -149,8 +153,14 @@ class Simulator:
         self.has_position = False
         self.current_position_type = None
         self.current_position_price = None
+
+        profit_str = (
+            f"+ ${unrealised_profit:.2f}"
+            if unrealised_profit >= 0
+            else f"- ${abs(unrealised_profit):.2f}"
+        )
         print(
-            f"Position Closed (${self.account.capital:.2f}+{unrealised_profit:.2f}): {time} @ {closing_price}"
+            f"Position Closed (${self.account.capital:.2f} {profit_str}): {time} @ {closing_price}"
         )
         self.account.add_deduct_money(unrealised_profit)
         self.n_positions += 1
