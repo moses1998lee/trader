@@ -12,23 +12,49 @@ pd.set_option("display.max_colwidth", None)  # Use None for unlimited column wid
 
 
 MAX_RISK = 0.01  # 1% of account
-STD_THRESHOLD = 1.1  # 110% of std
+STD_THRESHOLD = 1  # 110% of std
 RISK_REWARD = (1, 1)  # 1 MAX_RISK is to 3 REWARD
-MEAN_REVERSION_WINDOW = 8
-start, end = "01012024", "31122024"
+MEAN_REVERSION_WINDOW = 4
+STOPLOSS_PERCENT_STD = 0.15
+CURRENCIES = ["EUR_JPY", "EUR_USD", "USD_CAD", "USD_JPY"]
+# CURRENCIES = ["EUR_USD"]
 
-df = pd.read_csv(
-    "data/raw/EUR_JPY/EUR_JPY_H1_01012024_01032025.csv", index_col=0, parse_dates=True
-)
-acc = Account(10000)
-strat = MeanReversion(window=MEAN_REVERSION_WINDOW, std_threshold=STD_THRESHOLD)
-sim = Simulator(
-    account=acc, max_risk=MAX_RISK, risk_reward=RISK_REWARD, strategy=strat, df=df
-)
+# start,end = None, None
+start, end = "01012024", "31122024"
 
 
 if __name__ == "__main__":
-    # e.g. start,end string: 01012024 (ddmmyyyy)
-    sim.simulate(
-        start, end
-    )  # start, end indicates start and end date the simulation is runned on the dataset
+    return_strs = []
+
+    for cur in CURRENCIES:
+        df = pd.read_csv(
+            f"data/raw/{cur}/{cur}_H1_01012010_31032025.csv",
+            index_col=0,
+            parse_dates=True,
+        )
+        acc = Account(10000)
+        strat = MeanReversion(
+            window=MEAN_REVERSION_WINDOW,
+            std_threshold=STD_THRESHOLD,
+            stoploss_percent_std=STOPLOSS_PERCENT_STD,
+        )
+        sim = Simulator(
+            account=acc,
+            max_risk=MAX_RISK,
+            risk_reward=RISK_REWARD,
+            strategy=strat,
+            df=df,
+        )
+
+        print(f"Running simulation for {cur}...")
+        # e.g. start,end string: 01012024 (ddmmyyyy)
+        str = sim.simulate(
+            start, end
+        )  # start, end indicates start and end date the simulation is runned on the dataset
+        return_strs.append(str)
+
+    print(f"start: {start}, end: {end}")
+    for cur, s in zip(CURRENCIES, return_strs):
+        print(f"{cur}\n{s}")
+
+# %%

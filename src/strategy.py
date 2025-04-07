@@ -17,12 +17,17 @@ class BaseStrategy(ABC):
     def transform_data(self, data):
         pass
 
+    @abstractmethod
+    def stoploss(self, data):
+        pass
+
 
 class MeanReversion(BaseStrategy):
-    def __init__(self, window: int, std_threshold: float):
+    def __init__(self, window: int, std_threshold: float, stoploss_percent_std: float):
         super().__init__()
         self.window = window
         self.std_threshold = std_threshold
+        self.stoploss_percent_std = stoploss_percent_std
 
     def __repr__(self):
         return "Strategy=MeanReversion"
@@ -46,3 +51,20 @@ class MeanReversion(BaseStrategy):
         data.loc[data["mid"] < data["lb"], SIGNAL_COL] = 1
 
         return data
+
+    def stoploss(self, data):
+        """
+        SL for MeanReversion:
+            std below or std above current price for buy and sell orders respectively.
+        """
+        if data[SIGNAL_COL] == 0:
+            raise ValueError(
+                "No stoploss to compute when there is no buy or sell signal!"
+            )
+        if data[SIGNAL_COL] == 1:
+            stoploss = data[ASK_COL] - (self.stoploss_percent_std * data["std"])
+
+        if data[SIGNAL_COL] == -1:
+            stoploss = data[BID_COL] + (self.stoploss_percent_std * data["std"])
+
+        return stoploss

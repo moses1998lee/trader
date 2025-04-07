@@ -145,5 +145,4 @@ def fetch_historical(
     # Convert to datetime
     correct_range_df.loc[:, "time"] = pd.to_datetime(correct_range_df["time"])
     correct_range_df.set_index("time", inplace=True)
-    print(correct_range_df)
     return correct_range_df
