@@ -72,6 +72,7 @@ def get_candles(
                 "time": candle["time"],
                 "bid": candle["bid"]["c"],
                 "ask": candle["ask"]["c"],
+                "volume": candle["volume"],
             }
             for candle in candles
             if candle.get("complete", False)

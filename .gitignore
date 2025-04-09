@@ -11,3 +11,6 @@ wheels/
 
 # Configurations
 /conf/
+
+# Data
+/data/*

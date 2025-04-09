@@ -7,10 +7,10 @@ CONFIGS = configs()
 RAW_DATAFOLDER = CONFIGS["folder_paths"]["raw"]
 
 INSTRUMENTS = ["EUR_USD", "USD_CAD", "USD_JPY", "EUR_JPY"]
-GRANULARITY = "H1"
+GRANULARITY = "M1"
 PRICE_TYPE = "BA"  # bid-ask, change to "M" for mid-price
 START_STR = "01012010"
-END_STR = "31032025"
+END_STR = "31122024"
 
 
 def main():

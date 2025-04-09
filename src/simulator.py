@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -18,6 +19,9 @@ class Account:
     def add_deduct_money(self, amount: float):
         """Adds or deduct money depending on if the amount is positive of negative"""
         self.capital += amount
+
+    def bust(self):
+        return self.capital <= 0
 
 
 class Simulator:
@@ -56,6 +60,8 @@ class Simulator:
         self.data = self.data.loc[start:end]
 
         for time, data in self.data.iterrows():
+            if self.account.bust():
+                break
             if not self.has_position and self.should_purchase(data):
                 self.open_position(time, data)
                 # print("1")
@@ -113,11 +119,20 @@ class Simulator:
             closing_price = self.closing_price(data)
             # print(f"UP, LT, PT: {unrealised_profit, loss_threshold, profit_threshold}")
             # if self.current_position_type + data[SIGNAL_COL] == 0:
-            #     return True
+            # print(
+            #     f"{self._position_str_map(data[SIGNAL_COL])} signal: ${self.current_position_price}, ${closing_price}"
+            # )
+            # return True
 
             if self.hit_stoploss(closing_price):
+                # print(
+                #     f"Stoploss signal: ${self.current_position_price}, ${closing_price}"
+                # )
                 return True
             if self.hit_take_profit(closing_price):
+                # print(
+                #     f"Takeprofit signal: ${self.current_position_price}, ${closing_price}"
+                # )
                 return True
 
         return False
@@ -139,7 +154,9 @@ class Simulator:
         )  # We assume max risk does not scale with changing size of account
         # We assume stays constant with initial capital
 
-        position_size = max_risk_in_dollars / diff
+        # print(current_price, stoploss)
+        # print(diff)
+        position_size = math.floor(max_risk_in_dollars / diff)
 
         return position_size
 
@@ -157,7 +174,7 @@ class Simulator:
             return current_price - (self.risk_reward[1] * diff)
 
     def open_position(self, time: datetime, data: pd.Series):
-        current_price = float(self.opening_price(data))
+        current_price = self.opening_price(data)
         self.stoploss = self.strategy.stoploss(data)
         self.take_profit = self.tp(data, current_price)
 
@@ -166,6 +183,9 @@ class Simulator:
         # print(f"Position Value: {position_value}")
 
         if self.can_open(position_value):
+            # print(
+            #     f"Stoploss, Takeprofit: ${float(self.stoploss)}, ${float(self.take_profit)}"
+            # )
             self.has_position = True
             self.current_position_type = data[SIGNAL_COL]
             self.current_position_price = current_price
@@ -209,7 +229,7 @@ class Simulator:
             else f"- ${abs(unrealised_profit):.2f}"
         )
         print(
-            f"{self._position_str_map(self.current_position_type)} Position Closed "
+            f"{self._position_str_map(self.current_position_type)} ({self.current_position_size}) Position Closed "
             f"(${self.account.capital:.2f} {profit_str}): {time} @ {closing_price}"
         )
         self.has_position = False
