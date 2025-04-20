@@ -4,13 +4,18 @@ from src.oanda_utils import fetch_historical
 from src.utils import configs
 
 CONFIGS = configs()
-RAW_DATAFOLDER = CONFIGS["folder_paths"]["raw"]
 
-INSTRUMENTS = ["EUR_USD", "USD_CAD", "USD_JPY", "EUR_JPY"]
-GRANULARITY = "M1"
+OANDA_RAW_DATAFOLDER = os.path.join(
+    CONFIGS.folder_paths.data_root,
+    CONFIGS.folder_paths.raw_folder,
+    CONFIGS.folder_paths.sub_folders.oanda,
+)
+
+INSTRUMENTS = ["eur_usd", "usd_cad", "usd_jpy", "eur_jpy"]
+GRANULARITY = "m1"
 PRICE_TYPE = "BA"  # bid-ask, change to "M" for mid-price
-START_STR = "01012010"
-END_STR = "31122024"
+START_STR = "01012025"
+END_STR = "16042025"
 
 
 def main():
@@ -21,7 +26,7 @@ def main():
         hist_df = fetch_historical(
             instrument, GRANULARITY, PRICE_TYPE, START_STR, END_STR
         )
-        instrument_folder = os.path.join(RAW_DATAFOLDER, instrument)
+        instrument_folder = os.path.join(OANDA_RAW_DATAFOLDER, instrument)
         os.makedirs(instrument_folder, exist_ok=True)
 
         file_name = f"{instrument}_{GRANULARITY}_{START_STR}_{END_STR}.csv"

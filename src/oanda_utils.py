@@ -7,8 +7,8 @@ import requests
 from src.utils import configs
 
 CONFIGS = configs()
-API = CONFIGS["oanda"]["api_key"]
-BASE_URL = CONFIGS["oanda"]["oanda_base_url"]
+API = CONFIGS.oanda.api_key
+BASE_URL = CONFIGS.oanda.oanda_base_url
 HEADERS = {"Authorization": f"Bearer {API}", "Content-type": "application/json"}
 
 
@@ -118,6 +118,8 @@ def fetch_historical(
     Returns a df for easy data manipulation"""
     dt_start = datetime.strptime(start_str, "%d%m%Y")
     dt_end = datetime.strptime(end_str, "%d%m%Y")
+    instrument = instrument.upper()
+    granularity = granularity.upper()
 
     current = dt_start
     all_data = []
