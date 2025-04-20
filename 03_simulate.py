@@ -1,99 +1,40 @@
 # %%
-import pandas as pd
 
-from src.simulator import Account, Simulator
-from src.strategy import MeanReversion
+from src.configurator import Configurator
+from src.entry_strat import SpreadReversionEntry
+from src.exit_strat import MinSLRatioTP
+from src.simulator import Simulator
+from src.utils import configs
 
-pd.set_option("display.max_rows", None)  # None means no limit
-pd.set_option("display.max_columns", None)  # Display all columns
+CONFIGS = configs()
 
-pd.set_option("display.width", None)  # Use None to automatically detect the width
-pd.set_option("display.max_colwidth", None)  # Use None for unlimited column width
+sim_configs = CONFIGS.simulation_configs
+trade_configs = sim_configs.trading_configs
+entry_strat_configs = CONFIGS.entry_strategies
+exit_strat_configs = CONFIGS.exit_strategies
 
-
-MAX_RISK = 0.02  # 1% of account
-RISK_REWARD = (1, 5)  # 1 MAX_RISK is to 3 REWARD
-
-MID_REVERSION_WINDOW = (
-    200  # window to calculate 'mid' price moving average and 'lb' and 'ub'
+entry_strategy = SpreadReversionEntry(
+    spread_reversion_configs=CONFIGS.entry_strategies.spread_reversion.configs,
+    strategy_new_cols=CONFIGS.entry_strategies.spread_reversion.new_cols,
 )
-MID_STD_THRESHOLD = (
-    1  # the percent of std from MA that counts as lower and upper bounds
-)
-# window to calculate the 'vol_bound' and used in tandem with checking spikes within VOL_SPIKE_WINDOW
-VOL_REVERSION_WINDOW = 200
-VOL_STD_THRESHOLD = (
-    1  # threshold that is used from the 'vol_ma' that is used to determine a vol spike
-)
-VOL_SPIKE_WINDOW = 4  # Checks any 15 datapoints before if there is a spike
-
-STOPLOSS_PERCENT_STD = (
-    1  # how many times of std away from current price that is the stoploss
+exit_strategy = MinSLRatioTP(
+    min_sl_window_lookback=exit_strat_configs.min_sl_ratio_tp.min_sl_window_lookback,
+    risk_to_reward_str=trade_configs.risk_to_reward_str,
 )
 
-STARTING_CAPITAL = 1000
-
-# ---------
-# DATASETS
-# ---------
-# CURRENCIES = ["EUR_JPY", "EUR_USD", "USD_CAD", "USD_JPY"]
-CURRENCIES = ["EUR_USD"]
-GRANULARITY = "H4"
-DATASET_DATE_STR = "01012020_31122024"
-
-FILE_PATH = "data/raw/2025.4.13EURUSD-TICK-No Session.csv"
-
-VERBOSE = True
-
-start, end = None, None
-# start, end = "01012024", "31122024"
-start, end = (
-    "01012024",
-    "31122024",
+# Account class and PositionSize class instantiated by Configurator
+configurator = Configurator(
+    data_provider=sim_configs.provider,
+    granularity=sim_configs.granularity,
+    currencies=sim_configs.currencies,
+    start_end_str=(sim_configs.start_str, sim_configs.end_str),
+    initial_capital=trade_configs.capital,
+    allowed_leverage=trade_configs.allowed_leverage,
+    max_risk=trade_configs.max_risk,
+    entry_strategy=entry_strategy,
+    exit_strategy=exit_strategy,
 )
-
 
 if __name__ == "__main__":
-    return_strs = []
-
-    for cur in CURRENCIES:
-        df = pd.read_csv(
-            FILE_PATH,
-            # f"data/raw/{cur}/{cur}_{GRANULARITY}_{DATASET_DATE_STR}.csv",
-            index_col=0,
-            parse_dates=True,
-        )
-        acc = Account(STARTING_CAPITAL)
-        strat = MeanReversion(
-            mid_reversion_window=MID_REVERSION_WINDOW,
-            vol_reversion_window=VOL_REVERSION_WINDOW,
-            mid_reversion_std=MID_STD_THRESHOLD,
-            vol_reversion_std=VOL_STD_THRESHOLD,
-            vol_spike_window=VOL_SPIKE_WINDOW,
-            stoploss_percent_std=STOPLOSS_PERCENT_STD,
-        )
-        sim = Simulator(
-            account=acc,
-            max_risk=MAX_RISK,
-            risk_reward=RISK_REWARD,
-            strategy=strat,
-            df=df,
-            verbose=VERBOSE,
-        )
-
-        print(f"Running simulation for {cur}...")
-        # e.g. start,end string: 01012024 (ddmmyyyy)
-        str = sim.simulate(
-            start, end
-        )  # start, end indicates start and end date the simulation is runned on the dataset
-        print(f"{cur}\n{str}")
-
-        return_strs.append(str)
-
-    print("\n\n############# SUMMARY #############")
-    print(f"start: {start}, end: {end}")
-    for cur, s in zip(CURRENCIES, return_strs):
-        print(f"{cur}\n{s}")
-        print("\n")
-
-# %%
+    simulator = Simulator(configurator, verbose=sim_configs.verbose)
+    simulator.simulate()
