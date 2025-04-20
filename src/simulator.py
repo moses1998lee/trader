@@ -125,6 +125,9 @@ class Simulator:
         trade = Trade(
             entry_time, entry_price, stop_loss, take_profit, direction, position_size
         )
+        assert stop_loss < entry_price, (
+            f"Stop loss not less than entry_price! Clearly incorrect! Sl, Entry: {stop_loss, entry_price}"
+        )
         trade_open_str = self.trade_tracker.open_trade(trade)
         self.printer.print_trade_open(trade_open_str, account.capital)
 

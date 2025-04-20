@@ -72,8 +72,10 @@ class MinSLRatioTP(BaseExit):
             position_window_data = self._get_position_data(window_data, signal)
             stop_loss = position_window_data.min()
             if (
-                abs(entry_price - stop_loss) / entry_price <= 0.001
+                abs(entry_price - stop_loss) / entry_price < 0.001
             ):  # if less than 1%, not counted
+                return None
+            if stop_loss >= entry_price:
                 return None
 
             return stop_loss

@@ -77,8 +77,8 @@ class TradeTracker:
             f"{trade.entry_time}, "
             f"id: {trade.id:<3} "
             f"{self.direction_mapper[trade.direction]:<10} ---- "
+            f"SL:   {trade.stop_loss:<8.5f} "
             f"E: {trade.entry_price:<8.5f} "
-            f"SL: {trade.stop_loss:<8.5f} "
             f"TP: {trade.take_profit:<8.5f} "
             f"PositionSize: {trade.position_size:<8.2f}"
         )
@@ -105,7 +105,13 @@ class TradeTracker:
 
         self.to_close[trade_id] = trade
 
-        trade_close_str = f"{trade.exit_time}, id: {trade.id:<3} {trade.status:<10} ---- PNL: $ {trade.pnl:.2f}"
+        trade_close_str = (
+            f"{trade.exit_time}, "
+            f"id: {trade.id:<3} "
+            f"{trade.status:<10} ---- "
+            f"Exit: {trade.exit_price:<8.5f} "
+            f"PNL: $ {trade.pnl:.2f}"
+        )
         # trade_close_str = f"{exit_time}: position {status.upper()}: ${pnl}"
         return trade_close_str
 

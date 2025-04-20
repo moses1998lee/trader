@@ -28,7 +28,7 @@ class Printer:
 
     def print_trade_close(self, trade_close_str: str, current_capital: float):
         if self.extra_verbose:
-            capital_str = f"Capital Remaining: $ {current_capital:.2f}"
+            capital_str = f"Capital Remaining: $ {current_capital:>7.2f}"
 
             print(
                 f"{trade_close_str}{capital_str.rjust(self.print_width - len(trade_close_str))}"
@@ -36,7 +36,7 @@ class Printer:
 
     def print_trade_open(self, trade_open_str: str, current_capital: float):
         if self.extra_verbose:
-            capital_str = f"Capital Remaining: $ {current_capital:.2f}"
+            capital_str = f"Capital Remaining: $ {current_capital:>7.2f}"
 
             print(
                 f"{trade_open_str}{capital_str.rjust(self.print_width - len(trade_open_str))}"
