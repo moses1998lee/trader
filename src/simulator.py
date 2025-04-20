@@ -26,7 +26,9 @@ class Simulator:
         self.entry_strategy = configurator.entry_strategy
         self.exit_strategy = configurator.exit_strategy
 
-        self.trade_tracker = TradeTracker()
+        self.trade_tracker = TradeTracker(
+            risk_free_rate_per_min=configurator.risk_free_rate_per_min
+        )
 
     def simulate(self):
         for cur, data in self.all_data.items():
@@ -123,7 +125,13 @@ class Simulator:
         position_size: int,
     ):
         trade = Trade(
-            entry_time, entry_price, stop_loss, take_profit, direction, position_size
+            entry_time=entry_time,
+            entry_price=entry_price,
+            stop_loss=stop_loss,
+            take_profit=take_profit,
+            direction=direction,
+            position_size=position_size,
+            pre_trade_capital=account.capital,
         )
         assert stop_loss < entry_price, (
             f"Stop loss not less than entry_price! Clearly incorrect! Sl, Entry: {stop_loss, entry_price}"

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
+import numpy as np
+
 
 @dataclass
 class Trade:
@@ -15,18 +17,22 @@ class Trade:
     take_profit: float
     direction: int  # direction of trade -> 1: buy, -1: sell
     position_size: float  # position size of trade
+    pre_trade_capital: float  # The capital before the trade was opened
+
     status: Optional[str] = "open"  # 'open', 'closed', 'stopped', 'target_hit'
 
     id: Optional[int] = None  # set by TradeTracker
     exit_time: Optional[datetime] = None
     exit_price: Optional[float] = None
     pnl: Optional[float] = None
+    returns: Optional[float] = None  # The returns of a trade pnl/pre_trade_capital
 
     def close(self, exit_time: datetime, exit_price: float, status: str, pnl: float):
         self.exit_time = exit_time
         self.exit_price = exit_price
         self.status = status
         self.pnl = pnl
+        self.returns = pnl / self.pre_trade_capital
 
 
 class TradeTracker:
@@ -34,15 +40,18 @@ class TradeTracker:
     Tracks and manages all trades in a backtest or live simulation.
     """
 
-    open_trades: dict[int, Trade] = {}
-    to_close: dict[int, Trade] = {}
-    to_open: dict[int, Trade] = {}
-    trade_history: dict[int, Trade] = {}
-    direction_mapper = {1: "long", -1: "short"}
+    def __init__(self, risk_free_rate_per_min: float):
+        self.risk_free_rate_per_min = risk_free_rate_per_min
 
-    n_wins = 0
-    n_losses = 0
-    id = 0
+        self.open_trades: dict[int, Trade] = {}
+        self.to_close: dict[int, Trade] = {}
+        self.to_open: dict[int, Trade] = {}
+        self.trade_history: dict[int, Trade] = {}
+        self.direction_mapper = {1: "long", -1: "short"}
+
+        self.n_wins = 0
+        self.n_losses = 0
+        self.id = 0
 
     def reset(self):
         """reset all trade trackers."""
@@ -119,4 +128,29 @@ class TradeTracker:
         """
         Computes the total profit or loss across all closed trades.
         """
-        return sum(t.pnl for t in list(self.trades.values()) if t.pnl is not None)
+        return sum(
+            t.pnl for t in list(self.trade_history.values()) if t.pnl is not None
+        )
+
+    def sharpe_ratio(self) -> float:
+        all_trade_returns = np.array(
+            list(
+                t.returns
+                for t in list(self.trade_history.values())
+                if t.returns is not None
+            )
+        )
+        trade_durations = np.array(
+            list(
+                (t.exit_time - t.entry_time).total_seconds() / 60
+                for t in list(self.trade_history.values())
+            )
+        )
+        per_min_normalized_returns = all_trade_returns / trade_durations
+
+        excess_returns = per_min_normalized_returns - self.risk_free_rate_per_min
+        per_min_sharpe = np.mean(excess_returns) / np.std(per_min_normalized_returns)
+
+        annualized_sharpe = per_min_sharpe * np.sqrt(252 * 390)
+
+        return annualized_sharpe

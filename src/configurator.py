@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 import pandas as pd
+import pandas_datareader.data as web
 
 from .entry_strat import BaseEntry
 from .exit_strat import BaseExit
@@ -25,6 +26,7 @@ class Configurator:
     max_risk: float
     entry_strategy: BaseEntry
     exit_strategy: BaseExit
+    risk_free_rate_per_min: Optional[float] = None
     data: Optional[dict[str, pd.DataFrame]] = None
 
     def __post_init__(self):
@@ -35,6 +37,21 @@ class Configurator:
             raise Warning(
                 "Beware as you have loaded your own data directly which should not be done!"
             )
+
+        if self.risk_free_rate_per_min is None:
+            self.risk_free_rate_per_min = self.get_risk_free_rate_per_min()
+
+    def get_risk_free_rate_per_min(self):
+        start = datetime.strptime(self.start_end_str[0], "%d%m%Y")
+        end = datetime.strptime(self.start_end_str[1], "%d%m%Y")
+
+        # Fetch 3-Month Treasury Bill rates from FRED
+        risk_free_data = web.DataReader("DTB3", "fred", start, end)
+        risk_free_data = risk_free_data / 100
+        avg_rate = risk_free_data.mean().item()
+        rf_per_minute = avg_rate / (252 * 390)  # 252 days * 390 mins/day
+
+        return rf_per_minute
 
     def get_data(self) -> list[pd.DataFrame]:
         """

@@ -56,7 +56,7 @@ class Printer:
         trades_taken = trade_tracker.n_wins + trade_tracker.n_losses
         win_rate = (trade_tracker.n_wins / trades_taken) * 100
 
-        end_simulation_str = f"{currency}  =  {start}-{end}: ${initial_capital} → ${final_capital}, pnl: {pnl_percent:.2f}%  max_drawdown %: {max_drawdown:.1f}%  total_trades: {trade_tracker.n_wins} wins + {trade_tracker.n_losses} losses  win_rate: {win_rate:.2f}%"
+        end_simulation_str = f"{currency}  =  {start}-{end}: ${initial_capital} → ${final_capital},  pnl: {pnl_percent:.2f}%  max_drawdown %: {max_drawdown:.1f}%  sharpe ratio: {trade_tracker.sharpe_ratio():.2f}  {trade_tracker.n_wins} wins + {trade_tracker.n_losses} losses (win_rate: {win_rate:.2f}%)"
         self.end_simulation[currency] = end_simulation_str
 
     def print_end_simulation_summary(self):
