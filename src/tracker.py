@@ -17,6 +17,7 @@ class Trade:
     position_size: float  # position size of trade
     status: Optional[str] = "open"  # 'open', 'closed', 'stopped', 'target_hit'
 
+    id: Optional[int] = None  # set by TradeTracker
     exit_time: Optional[datetime] = None
     exit_price: Optional[float] = None
     pnl: Optional[float] = None
@@ -39,6 +40,8 @@ class TradeTracker:
     trade_history: dict[int, Trade] = {}
     direction_mapper = {1: "long", -1: "short"}
 
+    n_wins = 0
+    n_losses = 0
     id = 0
 
     def reset(self):
@@ -47,6 +50,9 @@ class TradeTracker:
         self.to_close = {}
         self.to_open = {}
         self.trade_history = {}
+
+        self.n_wins = 0
+        self.n_losses = 0
 
     def update(self):
         for (
@@ -63,10 +69,21 @@ class TradeTracker:
         """
         Adds a new trade to the tracker.
         """
+        trade.id = self.id
         self.to_open[self.id] = trade
         self.id += 1
 
-        trade_open_str = f"{trade.entry_time}: position {self.direction_mapper[trade.direction]}: entry: {trade.entry_price}: sl {trade.stop_loss}: tp {trade.take_profit}: position_size {trade.position_size}"
+        trade_open_str = (
+            f"{trade.entry_time}, "
+            f"id: {trade.id:<3} "
+            f"{self.direction_mapper[trade.direction]:<10} ---- "
+            f"E: {trade.entry_price:<8.5f} "
+            f"SL: {trade.stop_loss:<8.5f} "
+            f"TP: {trade.take_profit:<8.5f} "
+            f"PositionSize: {trade.position_size:<8.2f}"
+        )
+
+        # trade_open_str = f"{trade.entry_time}, id: {trade.id:<5} ({self.direction_mapper[trade.direction]:<5}) E: {trade.entry_price:<8} SL: {trade.stop_loss:<8}: tp {trade.take_profit:<8}: position_size {trade.position_size:<8}"
 
         return trade_open_str
 
@@ -81,9 +98,15 @@ class TradeTracker:
         trade = self.open_trades[trade_id]
         trade.close(exit_time, exit_price, status, pnl)
 
+        if trade.pnl > 0:
+            self.n_wins += 1
+        if trade.pnl <= 0:
+            self.n_losses += 1
+
         self.to_close[trade_id] = trade
 
-        trade_close_str = f"{exit_time}: position {status.upper()}: ${pnl}"
+        trade_close_str = f"{trade.exit_time}, id: {trade.id:<3} {trade.status:<10} ---- PNL: $ {trade.pnl:.2f}"
+        # trade_close_str = f"{exit_time}: position {status.upper()}: ${pnl}"
         return trade_close_str
 
     def total_pnl(self) -> float:

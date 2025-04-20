@@ -1,12 +1,16 @@
 from .configurator import Configurator
+from .tracker import TradeTracker
 
 
 class Printer:
-    def __init__(self, configurator: Configurator, verbose: bool = int):
+    def __init__(
+        self, configurator: Configurator, verbose: bool = int, print_width: int = 140
+    ):
         self.verbose = verbose
         self.extra_verbose = self._configure_extra_verbose()
         self.configurator = configurator
         self.end_simulation = {}
+        self.print_width = print_width
 
     def _configure_extra_verbose(self):
         if self.verbose == 2:
@@ -24,11 +28,19 @@ class Printer:
 
     def print_trade_close(self, trade_close_str: str, current_capital: float):
         if self.extra_verbose:
-            print(f"{trade_close_str}: Capital Remaining: {current_capital}")
+            capital_str = f"Capital Remaining: $ {current_capital:.2f}"
+
+            print(
+                f"{trade_close_str}{capital_str.rjust(self.print_width - len(trade_close_str))}"
+            )
 
     def print_trade_open(self, trade_open_str: str, current_capital: float):
         if self.extra_verbose:
-            print(f"{trade_open_str}: Capital Remaining: {current_capital}")
+            capital_str = f"Capital Remaining: $ {current_capital:.2f}"
+
+            print(
+                f"{trade_open_str}{capital_str.rjust(self.print_width - len(trade_open_str))}"
+            )
 
     def store_end_simulation(
         self,
@@ -39,8 +51,12 @@ class Printer:
         final_capital: float,
         pnl_percent: float,
         max_drawdown: float,
+        trade_tracker: TradeTracker,
     ):
-        end_simulation_str = f"{currency}  =  {start}-{end}: ${initial_capital} → ${final_capital}, pnl: {pnl_percent:.2f}%  max_drawdown %: {max_drawdown:.1f}%"
+        trades_taken = trade_tracker.n_wins + trade_tracker.n_losses
+        win_rate = (trade_tracker.n_wins / trades_taken) * 100
+
+        end_simulation_str = f"{currency}  =  {start}-{end}: ${initial_capital} → ${final_capital}, pnl: {pnl_percent:.2f}%  max_drawdown %: {max_drawdown:.1f}%  total_trades: {trade_tracker.n_wins} wins + {trade_tracker.n_losses} losses  win_rate: {win_rate:.2f}%"
         self.end_simulation[currency] = end_simulation_str
 
     def print_end_simulation_summary(self):
@@ -48,6 +64,3 @@ class Printer:
             print("--------------------------------------------------")
             for _, summary in self.end_simulation.items():
                 print(summary)
-
-
-# %%

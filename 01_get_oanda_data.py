@@ -14,7 +14,7 @@ OANDA_RAW_DATAFOLDER = os.path.join(
 INSTRUMENTS = ["eur_usd", "usd_cad", "usd_jpy", "eur_jpy"]
 GRANULARITY = "m1"
 PRICE_TYPE = "BA"  # bid-ask, change to "M" for mid-price
-START_STR = "01012025"
+START_STR = "01012024"
 END_STR = "16042025"
 
 

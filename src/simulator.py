@@ -32,8 +32,9 @@ class Simulator:
         for cur, data in self.all_data.items():
             self.printer.print_begin(cur)
             account = Account(capital=self.initial_capital)
-            lowest_capital = self.initial_capital
             self.trade_tracker.reset()
+
+            lowest_capital = self.initial_capital
 
             for pos, row in enumerate(data.itertuples(index=True), start=0):
                 if account.bust():
@@ -107,6 +108,7 @@ class Simulator:
                 final_capital=account.capital,
                 pnl_percent=pnl_percent,
                 max_drawdown=max_drawdown,
+                trade_tracker=self.trade_tracker,
             )
         self.printer.print_end_simulation_summary()
 
