@@ -18,6 +18,7 @@ dependencies = [
     "pywavelets>=1.8.0",
     "pyyaml>=6.0.2",
     "stable-baselines3>=2.6.0",
+    "statsmodels>=0.14.4",
     "torch>=2.5.1",
     "v20>=3.0.25.0",
     "yfinance>=0.2.55",
