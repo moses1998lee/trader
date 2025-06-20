@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 
 import pandas as pd
@@ -52,15 +53,15 @@ class OrderManager:
         return list(self.open_orders.values())
 
 
+@dataclass
 class OrderAdjustmentHandler:
     """
     Takes in Order and adjusts the order according to specified strategy defined in function
     """
 
-    def __init__(self, order: Order):
-        self.order = order
-        self.stoploss_adjustment_strategy: Optional[StoplossAdjustment] = None
-        self.take_profit_adjustment_strategy: Optional[TakeProfitAdjustment] = None
+    order: Order
+    stoploss_adjustment_strategy: Optional[StoplossAdjustment] = None
+    take_profit_adjustment_strategy: Optional[TakeProfitAdjustment] = None
 
     def adjust(
         self,

@@ -26,7 +26,7 @@ def register(registry: dict[str, Callable]):
     """
 
     def decorator(fn):
-        registry[fn.__name__] = fn
+        registry[fn.__name__.lower()] = fn
         return fn
 
     return decorator
@@ -38,7 +38,11 @@ def register_indicator(indicator_registry: dict[str, Callable]):
     """
 
     def decorator(cls):
-        indicator_registry[cls.__name__.lower()] = cls
+        key = cls.__name__.lower()
+        if key in indicator_registry:
+            raise KeyError(f"'{key}' already exists in registry!")
+
+        indicator_registry[key] = cls
         return cls
 
     return decorator

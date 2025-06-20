@@ -16,3 +16,6 @@ wheels/
 /data/*
 
 src/pyESN
+
+# api keys
+/crypto/api

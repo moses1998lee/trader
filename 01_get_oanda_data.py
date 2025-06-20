@@ -1,7 +1,7 @@
 import os
 
-from src.oanda_utils import fetch_historical
-from src.utils import configs
+from src_backtest.oanda_utils import fetch_historical
+from src_backtest.utils.configs import configs
 
 CONFIGS = configs()
 
@@ -11,11 +11,15 @@ OANDA_RAW_DATAFOLDER = os.path.join(
     CONFIGS.folder_paths.sub_folders.oanda,
 )
 
-INSTRUMENTS = ["eur_usd", "usd_cad", "usd_jpy", "eur_jpy"]
+INSTRUMENTS = [
+    "eur_usd",
+    "usd_jpy",
+    "xau_usd",
+]  # , "usd_cad", "usd_jpy", "eur_jpy"]
 GRANULARITY = "m1"
 PRICE_TYPE = "BA"  # bid-ask, change to "M" for mid-price
-START_STR = "15012024"
-END_STR = "25042025"
+START_STR = "01042025"
+END_STR = "01052025"
 
 
 def main():

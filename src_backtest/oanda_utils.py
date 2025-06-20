@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import requests
 
-from src.utils import configs
+from src_backtest.utils.configs import configs
 
 CONFIGS = configs()
 API = CONFIGS.oanda.api_key
@@ -131,6 +131,7 @@ def fetch_historical(
             granularity=granularity,
             price_type=price_type,
         )
+        # print(candles)
         if prev_candles == candles:
             break
         prev_candles = candles

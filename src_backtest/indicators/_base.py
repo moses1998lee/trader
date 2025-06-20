@@ -35,7 +35,7 @@ class Indicator(ABC):
         """
         Initialize the indicator configurations from conf/indicators.yaml.
         """
-        return all_configs["indicators"][self.__class__.__name__]
+        return all_configs["indicators"][self.__class__.__name__.lower()]
 
     def _set_indicator_attributes(self, indicator_configs: dict[str, Any]) -> None:
         """
